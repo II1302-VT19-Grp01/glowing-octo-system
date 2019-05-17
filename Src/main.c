@@ -104,7 +104,7 @@ int main(void)
   /* Infinite loop */
 
   /* USER CODE BEGIN WHILE */
-  float distance;
+//  float distance;
   int 	backlight_counter = 0,
   		update_counter = 1000;
 
@@ -112,13 +112,15 @@ int main(void)
   while(1){
 	  /* USER CODE END WHILE */
 	  /* USER CODE BEGIN 3 */
-	  distance = Measure_Distance();
-	  if(distance < 300){
-		  if(update_counter > 50){
-			  Get_Message();
-			  update_counter = 0;
+//	  distance = Measure_Distance();
+	  if(Measure_Distance() < 300){
+		  if(Measure_Distance() < 300){
+			  if(update_counter > 50){
+				  Get_Message();
+				  update_counter = 0;
+			  }
+			  Backlight_On();
 		  }
-		  Backlight_On();
 	  }
 	  else if(backlight_counter > 30){
 		  Backlight_Off();

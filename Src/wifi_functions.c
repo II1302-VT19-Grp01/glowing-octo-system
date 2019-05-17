@@ -55,46 +55,51 @@ void List_Nearby_WiFis(){
 void Get_Message(){
 
 	char buffer[BUFFERSIZE] = {};
+	char buffer2[BUFFERSIZE] = {};
+	char buffer3[BUFFERSIZE] = {};
+	char buffer4[100] = {};
+
 	char message[80] = {};
 	char transmit[] = "AT+CIPSTART=\"TCP\",\"169.50.73.249\",80\r\n";
 	char ammount[] = "AT+CIPSEND=70\r\n";
 	char send[] = "GET /status HTTP/1.1\r\nHOST:availability-device.eu-gb.mybluemix.net\r\n\r\n";
 	char close[] = "AT+CIPCLOSE\r\n";
 
-	while(HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY);
-	HAL_UART_Transmit(&huart1,transmit,sizeof(transmit),200);
-	HAL_UART_Receive(&huart1,buffer,BUFFERSIZE,400);
-	HAL_UART_Transmit(&huart1,ammount,sizeof(ammount),200);
-	HAL_UART_Receive(&huart1,buffer,BUFFERSIZE,400);
-	HAL_UART_Transmit(&huart1,send,sizeof(send),200);
-	HAL_UART_Receive(&huart1,buffer,BUFFERSIZE,400);
+	HAL_UART_Transmit(&huart1,transmit,sizeof(transmit),1000);
+	HAL_UART_Receive(&huart1,buffer3,BUFFERSIZE,1000);
+	HAL_UART_Transmit(&huart1,ammount,sizeof(ammount),1000);
+	HAL_UART_Receive(&huart1,buffer2,BUFFERSIZE,1000);
+	HAL_UART_Transmit(&huart1,send,sizeof(send),1000);
+	HAL_UART_Receive(&huart1,buffer,BUFFERSIZE,1000);
+	HAL_UART_Transmit(&huart1,close,sizeof(close),1000);
+	HAL_UART_Receive(&huart1,buffer4,100,1000);
 
 	uint32_t i = 3;
 	uint8_t j = 0;
 
-	while(!(buffer[i-3] == '-' && buffer[i-2] == '4' && buffer[i-1] == '"' && buffer[i] == '>') && i < 2000) i++; //HARDFAULT ERROR HERE OBS
+	while(!(buffer[i-3] == '-' && buffer[i-2] == '4' && buffer[i-1] == '"' && buffer[i] == '>') && i < 2000) i++;
 	if(i < 2000){
 		while(!(buffer[++i] == '<' && buffer[i+1] == '/' && buffer[i+2] == 'h' && buffer[i+3] == '1' && buffer[i+4] == '>') && j < 80){
 			switch(buffer[i]){
 				case 195: 				// if å, ä or ö
 					continue;
 				case 133:				// Å
-					message[i] = 0xAE;
+					message[j++] = 0xAE;
 					break;
 				case 165:				// å
-					message[i] = 0xAF;
+					message[j++] = 0xAF;
 					break;
 				case 132:				// Ä
-					message[i] = 0x5B;
+					message[j++] = 0x5B;
 					break;
 				case 164:				// ä
-					message[i] = 0x7B;
+					message[j++] = 0x7B;
 					break;
 				case 150:				// Ö
-					message[i] = 0x5C;
+					message[j++] = 0x5C;
 					break;
 				case 182:				// ö
-					message[i] = 0x7C;
+					message[j++] = 0x7C;
 					break;
 				default:
 					message[j++] = buffer[i];
@@ -103,17 +108,21 @@ void Get_Message(){
 
 		}
 		printf("%s\n",message);
+		LCD_Write(0,0x01);
 		LCD_Write(0,0x80);
 		for(int i = 0; i < sizeof(message); i++){
 			if(message[i] == 0)
 				break;
-
 			LCD_Write(1,message[i]);
 		}
 	}
 
-	HAL_UART_Transmit(&huart1,close,sizeof(close),400);
-	HAL_UART_Receive(&huart1,buffer,BUFFERSIZE,400);
-	while(HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY);
+	for(int i = 0; i < BUFFERSIZE; i++){
+		buffer[i] = 0;
+	}
+//	char buffer2[30] = {};
+//
+//	HAL_UART_Receive(&huart1,buffer2,sizeof(buffer2),400);
+//	while(HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY);
 
 }
